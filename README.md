@@ -44,7 +44,7 @@ pip install cryptography
 To encrypt a string:
 
 ```
-python main.py encrypt "your secret data" "your password"
+python main.py encrypt 'your secret data' 'your password'
 ```
 
 By default, each encrypted file will be saved in the `encrypted/` folder with a unique timestamped filename, for example:
@@ -55,7 +55,7 @@ encrypted/encrypted_2024-05-23_15-30-12.json
 
 You can also specify a custom output file:
 ```
-python main.py encrypt "your secret data" "your password" --output myfile.json
+python main.py encrypt 'your secret data' 'your password' --output myfile.json
 ```
 
 ### Decrypting Data
@@ -63,7 +63,7 @@ python main.py encrypt "your secret data" "your password" --output myfile.json
 To decrypt data from a JSON file:
 
 ```
-python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "your password"
+python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json 'your password'
 ```
 
 This will display the decrypted text on the console.
@@ -89,11 +89,11 @@ python main.py decrypt --help
 
 ```
 # Encrypt some data
-python main.py encrypt "This is a secret message" "mysecurepassword"
+python main.py encrypt 'This is a secret message' 'mysecurepassword'
 # Result: encrypted/encrypted_2024-05-23_15-30-12.json
 
 # Encrypt with custom output file
-python main.py encrypt "This is a secret message" "mysecurepassword" --output secret.json
+python main.py encrypt 'This is a secret message' 'mysecurepassword' --output secret.json
 
 # Decrypt the data
-python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "mysecurepassword" 
+python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json 'mysecurepassword' 
