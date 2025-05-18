@@ -1,99 +1,174 @@
-# CryptoVault
+# Secure Encryption/Decryption Tool
 
-CryptoVault — a simple and secure tool for encrypting and decrypting your sensitive data using AES-256-GCM encryption.
+A secure tool for encrypting and decrypting sensitive data using strong cryptography.
 
-## Requirements
+## Features
 
-- Python 3.6+
-- cryptography package
+- Encrypt data using AES-256-GCM with PBKDF2 key derivation
+- Decrypt encrypted data using a password
+- Web interface for easy use
+- Command-line interface for automation
+- All processing happens locally for maximum security
+- No data is stored or logged
+
+## Project Structure
+
+```
+encrypt_decrypt/
+│
+├── app/                        # Main application package
+│   ├── __init__.py             # Flask app initialization
+│   ├── routes.py               # Route definitions
+│   ├── utils/                  # Utility modules
+│   │   ├── __init__.py
+│   │   ├── crypto.py           # Cryptographic functions
+│   │   └── file.py             # File handling functions
+│   │
+│   ├── static/                 # Static assets
+│   │   ├── css/
+│   │   │   └── styles.css      # Application styles
+│   │   └── js/
+│   │       └── script.js       # JavaScript functionality
+│   │
+│   └── templates/              # Jinja2 templates
+│       └── index.html          # Main page template
+│
+├── encrypted/                  # Default directory for encrypted files
+├── tests/                      # Test files
+├── scripts/                    # Utility scripts
+├── archive/                    # Archived files
+├── config.py                   # Application configuration
+├── run.py                      # Web application entry point
+├── cli.py                      # Command-line interface
+├── setup.py                    # Package installation configuration
+├── Makefile                    # Build automation
+├── pytest.ini                  # PyTest configuration
+└── requirements.txt            # Project dependencies
+```
 
 ## Installation
 
-### Setting Up a Virtual Environment (Recommended)
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/encrypt_decrypt.git
+   cd encrypt_decrypt
+   ```
 
-For macOS and other systems with externally managed Python environments, it's recommended to use a virtual environment:
+2. Create and activate a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-```
-# Create a virtual environment
-python3 -m venv venv
+3. Install the dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
 
-# Activate the virtual environment
-source venv/bin/activate  # On macOS/Linux
-# or
-venv\Scripts\activate     # On Windows
+4. Alternative: Install as a package (provides encrypt-decrypt command):
+   ```
+   pip install -e .
+   ```
 
-# Install the required dependency
-pip install cryptography
+## macOS Installation and Usage
 
-# When done, you can deactivate the environment
-# deactivate
-```
+1. Ensure you have Python 3.6+ installed:
+   ```
+   python3 --version
+   ```
 
-### Direct Installation
+2. If needed, install Python using Homebrew:
+   ```
+   brew install python
+   ```
 
-If your Python environment allows direct installations:
+3. Create and activate a virtual environment:
+   ```
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-```
-pip install cryptography
-```
+4. Install the dependencies:
+   ```
+   pip3 install -r requirements.txt
+   ```
+   
+   Make sure you install all required packages:
+   ```
+   pip3 install python-dotenv flask cryptography
+   ```
+
+5. Start the application:
+   ```
+   python3 run.py
+   ```
+
+6. For the CLI tool:
+   ```
+   python3 cli.py encrypt "Your secret message" "your-password"
+   python3 cli.py decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
+   ```
 
 ## Usage
 
-### Encrypting Data
+### Web Interface
 
-To encrypt a string:
+1. Start the web server:
+   ```
+   python run.py
+   ```
 
+2. Open a browser and go to `http://localhost:5000`
+
+3. Use the interface to:
+   - Encrypt: Enter text, provide a password, set iterations (optional), and click "Encrypt"
+   - Decrypt: Upload an encrypted file or paste encrypted JSON, enter the password, and click "Decrypt"
+
+### Command Line
+
+For encryption:
 ```
-python main.py encrypt 'your secret data' 'your password'
-```
-
-By default, each encrypted file will be saved in the `encrypted/` folder with a unique timestamped filename, for example:
-
-```
-encrypted/encrypted_2024-05-23_15-30-12.json
-```
-
-You can also specify a custom output file:
-```
-python main.py encrypt 'your secret data' 'your password' --output myfile.json
-```
-
-### Decrypting Data
-
-To decrypt data from a JSON file:
-
-```
-python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json 'your password'
+python cli.py encrypt "Your secret message" "your-password"
 ```
 
-This will display the decrypted text on the console.
-
-### Command-Line Help
-
-For full usage information:
-
+For decryption:
 ```
-python main.py --help
-python main.py encrypt --help
-python main.py decrypt --help
+python cli.py decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
 ```
 
-## Security Features
+If installed as a package:
+```
+encrypt-decrypt encrypt "Your secret message" "your-password"
+encrypt-decrypt decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
+```
+
+Additional options:
+```
+python cli.py encrypt --help
+python cli.py decrypt --help
+```
+
+### Makefile
+
+The project includes a Makefile with helpful commands:
+```
+make help        # Show available commands
+make test        # Run tests
+make lint        # Check code style
+```
+
+## Security
 
 - Uses AES-256-GCM for authenticated encryption
-- PBKDF2 key derivation with 100,000 iterations (customizable)
-- Randomly generated salt and initialization vector for each encryption
-- Proper error handling for authentication failures
+- PBKDF2 with SHA-256 for key derivation
+- Default 100,000 iterations for key derivation (adjustable)
+- No data is stored or transmitted over the network
+- All processing happens locally in your browser or on your machine
 
-## Example
+## License
 
-```
-# Encrypt some data
-python main.py encrypt 'This is a secret message' 'mysecurepassword'
-# Result: encrypted/encrypted_2024-05-23_15-30-12.json
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-# Encrypt with custom output file
-python main.py encrypt 'This is a secret message' 'mysecurepassword' --output secret.json
+## Disclaimer
 
-# Decrypt the data
-python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json 'mysecurepassword' 
+This tool is provided for legitimate security purposes. Always use encryption responsibly and in compliance with applicable laws and regulations.

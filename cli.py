@@ -1,24 +1,25 @@
 """
-Encryption and decryption utility using AES-256-GCM.
+Command-line interface for encryption and decryption utility.
 """
 
 import sys
 import argparse
 from cryptography.exceptions import InvalidTag
-from crypto_utils import encrypt, decrypt, DEFAULT_ITERATIONS
-from file_utils import save_to_file, load_from_file, generate_encrypted_filename
+from app.utils.crypto import encrypt, decrypt, DEFAULT_ITERATIONS
+from app.utils.file import save_to_file, load_from_file, generate_encrypted_filename
 
 def parse_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Encrypt or decrypt data using AES-256-GCM",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   Encrypt data:
-    python main.py encrypt "This is secret" "password123"
+    python cli.py encrypt "This is secret" "password123"
   
   Decrypt data:
-    python main.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "password123"
+    python cli.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "password123"
         """
     )
     
@@ -48,6 +49,7 @@ Examples:
     return parser.parse_args()
 
 def main():
+    """Main CLI entry point."""
     args = parse_args()
     try:
         if args.mode == "encrypt":
@@ -78,4 +80,4 @@ def main():
     return 0
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main()) 
