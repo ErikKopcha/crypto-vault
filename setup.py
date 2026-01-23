@@ -2,12 +2,13 @@
 Setup script for the encryption/decryption tool.
 """
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-with open('README.md', 'r') as f:
+
+with open("README.md", "r") as f:
     long_description = f.read()
 
-with open('requirements.txt', 'r') as f:
+with open("requirements.txt", "r") as f:
     requirements = f.read().splitlines()
 
 setup(
@@ -27,10 +28,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
     entry_points={
-        'console_scripts': [
-            'encrypt-decrypt=cli:main',
+        "console_scripts": [
+            "encrypt-decrypt=cli:main",
         ],
     },
-) 
+)

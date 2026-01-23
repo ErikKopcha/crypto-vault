@@ -36,4 +36,4 @@ clean:
 
 # Install the package in development mode
 install:
-	$(PIP) install -e . 
+	$(PIP) install -e .

@@ -42,4 +42,4 @@ fi
 
 echo "Setup complete! You can now run the application."
 echo "To start the web server: make run"
-echo "To use the CLI: python cli.py encrypt \"Your secret\" \"your-password\"" 
+echo "To use the CLI: python cli.py encrypt \"Your secret\" \"your-password\""

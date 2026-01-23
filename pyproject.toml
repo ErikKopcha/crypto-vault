@@ -1,0 +1,51 @@
+[tool.ruff]
+# Black-compatible line length
+line-length = 88
+target-version = "py311"
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+[tool.ruff.lint]
+# E: pycodestyle errors
+# F: Pyflakes
+# I: isort
+# B: flake8-bugbear
+# W: pycodestyle warnings
+select = ["E", "F", "I", "B", "W"]
+ignore = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+lines-after-imports = 2
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--verbose"
+testpaths = [
+    "tests",
+]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

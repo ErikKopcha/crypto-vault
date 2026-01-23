@@ -49,18 +49,21 @@ encrypt_decrypt/
 ## Installation
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/yourusername/encrypt_decrypt.git
    cd encrypt_decrypt
    ```
 
 2. Create and activate a virtual environment:
+
    ```
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. Install the dependencies:
+
    ```
    pip install -r requirements.txt
    ```
@@ -73,32 +76,38 @@ encrypt_decrypt/
 ## macOS Installation and Usage
 
 1. Ensure you have Python 3.6+ installed:
+
    ```
    python3 --version
    ```
 
 2. If needed, install Python using Homebrew:
+
    ```
    brew install python
    ```
 
 3. Create and activate a virtual environment:
+
    ```
    python3 -m venv venv
    source venv/bin/activate
    ```
 
 4. Install the dependencies:
+
    ```
    pip3 install -r requirements.txt
    ```
-   
+
    Make sure you install all required packages:
+
    ```
    pip3 install python-dotenv flask cryptography
    ```
 
 5. Start the application:
+
    ```
    python3 run.py
    ```
@@ -114,6 +123,7 @@ encrypt_decrypt/
 ### Web Interface
 
 1. Start the web server:
+
    ```
    python run.py
    ```
@@ -127,22 +137,26 @@ encrypt_decrypt/
 ### Command Line
 
 For encryption:
+
 ```
 python cli.py encrypt "Your secret message" "your-password"
 ```
 
 For decryption:
+
 ```
 python cli.py decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
 ```
 
 If installed as a package:
+
 ```
 encrypt-decrypt encrypt "Your secret message" "your-password"
 encrypt-decrypt decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
 ```
 
 Additional options:
+
 ```
 python cli.py encrypt --help
 python cli.py decrypt --help
@@ -151,6 +165,7 @@ python cli.py decrypt --help
 ### Makefile
 
 The project includes a Makefile with helpful commands:
+
 ```
 make help        # Show available commands
 make test        # Run tests

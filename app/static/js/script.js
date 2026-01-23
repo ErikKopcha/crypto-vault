@@ -1,10 +1,3 @@
-/**
- * Encryption App Module
- * 
- * Structured following OOP and SOLID principles
- */
-
-// Global functions for direct HTML access
 function switchTab(tabName) {
     app.tabs.switchTab(tabName);
 }
@@ -35,7 +28,7 @@ class TabManager {
     switchTab(tabName) {
         this.tabs.forEach(tab => tab.classList.remove('active'));
         this.tabContents.forEach(tab => tab.classList.remove('active'));
-        
+
         document.getElementById(tabName + '-tab').classList.add('active');
         document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
     }
@@ -51,10 +44,9 @@ class InputMethodManager {
     }
 
     switchMethod(method) {
-        // Update selection styling
         this.methods.forEach(el => el.classList.remove('active'));
         document.querySelector(`.input-method[onclick="switchInputMethod('${method}')"]`).classList.add('active');
-        
+
         if (method === 'file') {
             this.fileUpload.classList.add('active');
             this.textUpload.classList.remove('active');
@@ -84,7 +76,7 @@ class FileUploader {
 
     initDragAndDrop() {
         if (!this.dropArea) return;
-        
+
         // Prevent default behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(event => {
             this.dropArea.addEventListener(event, e => {
@@ -92,32 +84,32 @@ class FileUploader {
                 e.stopPropagation();
             });
         });
-        
+
         // Highlight when dragging over
         ['dragenter', 'dragover'].forEach(event => {
             this.dropArea.addEventListener(event, () => {
                 this.dropArea.classList.add('highlight');
             });
         });
-        
+
         // Remove highlight
         ['dragleave', 'drop'].forEach(event => {
             this.dropArea.addEventListener(event, () => {
                 this.dropArea.classList.remove('highlight');
             });
         });
-        
+
         // Handle file drop
         this.dropArea.addEventListener('drop', e => this.handleDrop(e));
     }
-    
+
     handleDrop(e) {
         if (!e.dataTransfer || !e.dataTransfer.files) return;
-        
+
         this.fileInput.files = e.dataTransfer.files;
         this.updateFileLabel();
     }
-    
+
     updateFileLabel(input = null) {
         const fileInput = input || this.fileInput;
         if (fileInput.files && fileInput.files[0]) {
@@ -131,18 +123,16 @@ class FileUploader {
 }
 
 class ResultManager {
-    constructor() {
-        // This class will initialize only when needed
-    }
-    
+    constructor() {}
+
     downloadEncryptedData() {
         const resultElement = document.querySelector('.result textarea');
         if (!resultElement) return;
-        
+
         const encryptedData = resultElement.value;
         const dataBlob = new Blob([encryptedData], {type: 'application/json'});
         const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
-        
+
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(dataBlob);
         downloadLink.download = `encrypted_${timestamp}.json`;
@@ -153,49 +143,47 @@ class ResultManager {
 }
 
 class ResetManager {
-    constructor() {
-        // This class handles resetting all forms and data
-    }
-    
+    constructor() {}
+
     resetAllData() {
         // Clear all forms
         document.querySelectorAll('form').forEach(form => form.reset());
-        
+
         // Clear file input
         const fileInput = document.getElementById('encrypted-file');
         if (fileInput) fileInput.value = '';
-        
+
         // Reset file upload label
         const fileLabel = document.querySelector('.file-upload label span');
         if (fileLabel) fileLabel.textContent = 'Click to select file or drag and drop';
-        
+
         // Clear text areas
         document.querySelectorAll('textarea').forEach(textarea => {
             if (!textarea.readOnly) {
                 textarea.value = '';
             }
         });
-        
+
         // Remove result sections
         document.querySelectorAll('.result').forEach(result => {
             result.remove();
         });
-        
+
         // Remove alerts
         document.querySelectorAll('.alert').forEach(alert => {
             alert.remove();
         });
-        
+
         // Switch to encrypt tab
         const tabManager = new TabManager();
         tabManager.switchTab('encrypt');
-        
+
         // Reset input method to file
         const inputMethodManager = new InputMethodManager();
         inputMethodManager.switchMethod('file');
-        
+
         console.log('All data has been reset');
-        
+
         // Send a POST request to the server to reset data
         fetch('/reset', {
             method: 'POST',
@@ -223,22 +211,22 @@ class EncryptionApp {
             this.initialize();
         });
     }
-    
+
     initComponents() {
-        this.tabs = new TabManager();
-        this.inputMethods = new InputMethodManager();
-        this.fileUploader = new FileUploader();
-        this.resultManager = new ResultManager();
-        this.resetManager = new ResetManager();
+      this.tabs = new TabManager();
+      this.inputMethods = new InputMethodManager();
+      this.fileUploader = new FileUploader();
+      this.resultManager = new ResultManager();
+      this.resetManager = new ResetManager();
     }
-    
+
     initialize() {
-        const pageData = document.getElementById('page-data');
-        if (pageData && pageData.getAttribute('data-should-switch-decrypt') === 'true') {
-            this.tabs.switchTab('decrypt');
-        }
+      const pageData = document.getElementById('page-data');
+
+      if (pageData && pageData.getAttribute('data-should-switch-decrypt') === 'true') {
+          this.tabs.switchTab('decrypt');
+      }
     }
 }
 
-// Initialize the app
-const app = new EncryptionApp(); 
+const app = new EncryptionApp();

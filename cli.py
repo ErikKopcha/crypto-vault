@@ -2,11 +2,14 @@
 Command-line interface for encryption and decryption utility.
 """
 
-import sys
 import argparse
+import sys
+
 from cryptography.exceptions import InvalidTag
-from app.utils.crypto import encrypt, decrypt, DEFAULT_ITERATIONS
-from app.utils.file import save_to_file, load_from_file, generate_encrypted_filename
+
+from app.utils.crypto import DEFAULT_ITERATIONS, decrypt, encrypt
+from app.utils.file import generate_encrypted_filename, load_from_file, save_to_file
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -17,36 +20,41 @@ def parse_args():
 Examples:
   Encrypt data:
     python cli.py encrypt "This is secret" "password123"
-  
+
   Decrypt data:
     python cli.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "password123"
-        """
+        """,
     )
-    
-    subparsers = parser.add_subparsers(dest="mode", help="Operation mode", required=True)
-    
+
+    subparsers = parser.add_subparsers(
+        dest="mode", help="Operation mode", required=True
+    )
+
     # Encrypt command
     encrypt_parser = subparsers.add_parser("encrypt", help="Encrypt data")
     encrypt_parser.add_argument("data", help="Data to encrypt")
     encrypt_parser.add_argument("password", help="Encryption password")
     encrypt_parser.add_argument(
-        "-o", "--output", 
-        default=None, 
-        help=f"Output file (default: encrypted/encrypted_<timestamp>.json)"
+        "-o",
+        "--output",
+        default=None,
+        help=f"Output file (default: encrypted/encrypted_<timestamp>.json)",
     )
     encrypt_parser.add_argument(
-        "-i", "--iterations", 
-        type=int, 
-        default=DEFAULT_ITERATIONS, 
-        help=f"PBKDF2 iterations (default: {DEFAULT_ITERATIONS})"
+        "-i",
+        "--iterations",
+        type=int,
+        default=DEFAULT_ITERATIONS,
+        help=f"PBKDF2 iterations (default: {DEFAULT_ITERATIONS})",
     )
-    
+
     # Decrypt command
     decrypt_parser = subparsers.add_parser("decrypt", help="Decrypt data")
     decrypt_parser.add_argument("file", help="Encrypted JSON file")
     decrypt_parser.add_argument("password", help="Decryption password")
-    
+
     return parser.parse_args()
+
 
 def main():
     """Main CLI entry point."""
@@ -79,5 +87,6 @@ def main():
         return 1
     return 0
 
+
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())
