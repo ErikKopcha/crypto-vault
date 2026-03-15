@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Exit on error
 set -e
 
 echo "Setting up the encryption/decryption tool..."

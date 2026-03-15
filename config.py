@@ -5,18 +5,31 @@ Configuration settings for the application.
 import os
 
 
+# Path constants
+DEFAULT_ENCRYPTED_FOLDER = "encrypted"
+
+# PBKDF2 iteration bounds (security vs DoS prevention)
+MIN_ITERATIONS = 1_000
+MAX_ITERATIONS = 1_000_000
+DEFAULT_ITERATIONS = 100_000
+
+# File upload limit (10 MB)
+MAX_CONTENT_LENGTH = 10 * 1024 * 1024
+
+
 class Config:
     """Base configuration."""
 
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
     DEBUG = False
     TESTING = False
+    MAX_CONTENT_LENGTH = MAX_CONTENT_LENGTH
 
 
 class DevelopmentConfig(Config):
     """Development configuration."""
 
     DEBUG = True
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-key-change-in-production")
 
 
 class TestingConfig(Config):
@@ -24,12 +37,13 @@ class TestingConfig(Config):
 
     TESTING = True
     DEBUG = True
+    SECRET_KEY = "test-secret-key"
 
 
 class ProductionConfig(Config):
-    """Production configuration."""
+    """Production configuration — SECRET_KEY required."""
 
-    pass
+    SECRET_KEY = os.environ.get("SECRET_KEY")
 
 
 # Configuration dictionary

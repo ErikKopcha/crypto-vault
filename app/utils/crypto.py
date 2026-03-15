@@ -1,7 +1,3 @@
-"""
-Cryptographic functions for encryption and decryption.
-"""
-
 import os
 from typing import Any, Dict
 
@@ -11,11 +7,21 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
-# Constants
 DEFAULT_ITERATIONS = 100_000
 KEY_LENGTH = 32
 SALT_LENGTH = 16
 IV_LENGTH = 12
+
+MIN_ITERATIONS = 1_000
+MAX_ITERATIONS = 1_000_000
+
+
+def _validate_iterations(iterations: int) -> None:
+    """Validate iterations within safe bounds."""
+    if not MIN_ITERATIONS <= iterations <= MAX_ITERATIONS:
+        raise ValueError(
+            f"Iterations must be between {MIN_ITERATIONS} and {MAX_ITERATIONS}"
+        )
 
 
 def encrypt(
@@ -24,6 +30,7 @@ def encrypt(
     """
     Encrypt data using AES-256-GCM with PBKDF2 key derivation.
     """
+    _validate_iterations(iterations)
 
     salt = os.urandom(SALT_LENGTH)
     iv = os.urandom(IV_LENGTH)

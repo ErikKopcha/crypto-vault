@@ -14,12 +14,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <!-- Set data attributes instead of using script -->
     <meta
       id="page-data"
       data-should-switch-decrypt="{{ 'true' if (decrypted_data and not request.args.get('reset')) or (request.form and request.form.get('action') == 'decrypt' and not request.args.get('reset')) else 'false' }}"
     />
-    <!-- Main application script -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   </head>
   <body>
@@ -131,7 +129,7 @@
         <form
           method="post"
           enctype="multipart/form-data"
-          onsubmit="document.getElementById('submitted-flag').value='true';"
+          onsubmit="document.getElementById('submitted-flag').value = 'true'"
         >
           <input type="hidden" name="action" value="decrypt" />
           <input

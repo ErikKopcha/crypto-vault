@@ -1,7 +1,3 @@
-"""
-Unit tests for the crypto utility module.
-"""
-
 import pytest
 
 from app.utils.crypto import decrypt, encrypt
@@ -44,3 +40,12 @@ def test_decrypt_wrong_password():
     # Decrypt with wrong password should raise InvalidTag
     with pytest.raises(InvalidTag):
         decrypt(encrypted, wrong_password)
+
+
+def test_encrypt_iterations_validation():
+    """Test that out-of-range iterations raise ValueError."""
+    with pytest.raises(ValueError, match="between"):
+        encrypt("data", "password", iterations=1)
+
+    with pytest.raises(ValueError, match="between"):
+        encrypt("data", "password", iterations=2_000_000)

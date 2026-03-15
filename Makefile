@@ -24,7 +24,7 @@ decrypt:
 
 # Run tests
 test:
-	$(PYTHON) -m pytest
+	FLASK_ENV=testing $(PYTHON) -m pytest tests/ -v
 
 # Clean up generated files
 clean:
