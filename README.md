@@ -1,9 +1,10 @@
 ## Encrypt & decrypt
+
 ### Secure local encryption and decryption of sensitive data using AES-256-GCM with web and CLI interfaces.
 
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.3-black?logo=flask)
-![cryptography](https://img.shields.io/badge/cryptography-41.0-000000?logo=lock)
+![cryptography](https://img.shields.io/badge/cryptography-43.0-000000?logo=lock)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![CI](https://github.com/ErikKopcha/crypto-vault/actions/workflows/ci.yml/badge.svg)
 
@@ -32,16 +33,16 @@
 
 ## Tech Stack
 
-| Layer        | Technology                           |
-| ------------ | ------------------------------------ |
-| Language     | Python 3.10+                         |
-| Web          | Flask 2.3, Jinja2, Werkzeug          |
-| Cryptography | cryptography (AES-256-GCM, PBKDF2)   |
-| CLI          | argparse, Click (via setup.py entry) |
-| Config       | python-dotenv, config classes        |
-| Testing      | pytest 7.4                           |
-| Linting      | Ruff (pyproject.toml)                |
-| Package      | setuptools, pip                      |
+| Layer        | Technology                                 |
+| ------------ | ------------------------------------------ |
+| Language     | Python 3.10+                               |
+| Web          | Flask 2.3, Flask-WTF (CSRF), Flask-Limiter |
+| Cryptography | cryptography 43.x (AES-256-GCM, PBKDF2)    |
+| CLI          | argparse, Click (via setup.py entry)       |
+| Config       | python-dotenv, config classes              |
+| Testing      | pytest 7.4                                 |
+| Linting      | Ruff (pyproject.toml)                      |
+| Package      | setuptools, pip                            |
 
 ## Architecture
 
@@ -91,7 +92,8 @@ sequenceDiagram
 ```
 encrypt_decrypt/
 ├── app/
-│   ├── __init__.py          # Flask app factory
+│   ├── __init__.py          # Flask app factory, security headers
+│   ├── extensions.py       # CSRF, rate limiter
 │   ├── routes.py            # Web routes (encrypt, decrypt)
 │   ├── utils/
 │   │   ├── crypto.py        # AES-256-GCM, PBKDF2
@@ -129,6 +131,12 @@ cd crypto-vault
 python3 -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+Or use the setup script (creates venv, installs deps, copies `.env.example` to `.env`):
+
+```bash
+./scripts/setup.sh
 ```
 
 Optional — install as a package (provides `encrypt-decrypt` command):
@@ -216,11 +224,26 @@ CI runs on Python 3.10, 3.11, 3.12.
 
 ## Security
 
-- AES-256-GCM for confidentiality and integrity
-- PBKDF2 with configurable iterations (1,000–1,000,000)
-- Random salt and IV per encryption
+### Cryptography
+
+- **AES-256-GCM** — authenticated encryption for confidentiality and integrity
+- **PBKDF2-HMAC-SHA256** — key derivation (1,000–1,000,000 iterations, default 100K)
+- **Random salt and IV** per encryption operation
+- **Iterations bounds** enforced on decrypt to prevent PBKDF2 DoS
+
+### Web Security
+
+- **CSRF protection** — Flask-WTF on all POST forms
+- **Security headers** — X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy
+- **Input limits** — 1 MB for data/encrypted JSON, 256 chars for password
+- **Rate limiting** — 120 requests/minute per IP (Flask-Limiter)
+- **File upload limit** — 10 MB
+
+### Operational
+
 - No logging of plaintext or passwords
-- File upload limit: 10 MB
+- `SECRET_KEY` required in production
+- `.env.example` for configuration template
 
 > This tool is for legitimate security use. Use encryption responsibly and in compliance with applicable laws.
 

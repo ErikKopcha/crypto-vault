@@ -1,6 +1,6 @@
-
 from app.utils.crypto import encrypt
 from app.utils.errors import safe_decrypt
+from config import MAX_ITERATIONS
 
 
 def test_safe_decrypt_success():
@@ -24,3 +24,16 @@ def test_safe_decrypt_invalid_format():
     result, err = safe_decrypt({"invalid": "data"}, "password")
     assert result is None
     assert err is not None
+
+
+def test_safe_decrypt_iterations_exceeds_max():
+    """Payload with iterations > MAX returns (None, error_message) — DoS prevention."""
+    payload = {
+        "salt": "a" * 32,
+        "iv": "b" * 24,
+        "encrypted": "c" * 32,
+        "iterations": MAX_ITERATIONS + 1,
+    }
+    result, err = safe_decrypt(payload, "password")
+    assert result is None
+    assert "must not exceed" in err

@@ -67,6 +67,8 @@ def decrypt(data: Dict[str, Any], password: str) -> str:
     except (KeyError, ValueError) as e:
         raise ValueError(f"Invalid encryption format: {str(e)}") from e
 
+    _validate_iterations(iterations)
+
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=KEY_LENGTH,

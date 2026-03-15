@@ -1,5 +1,7 @@
 from typing import Any, Dict
 
+from config import MAX_ITERATIONS
+
 
 REQUIRED_KEYS = frozenset({"salt", "iv", "encrypted", "iterations"})
 
@@ -7,6 +9,8 @@ REQUIRED_KEYS = frozenset({"salt", "iv", "encrypted", "iterations"})
 def validate_encrypted_payload(data: Any) -> Dict[str, Any]:
     """
     Validate that data has the structure required for decryption.
+
+    Enforces iterations bounds to prevent PBKDF2 DoS via excessive CPU cost.
 
     @param data - Parsed JSON (dict) from file or form
     @returns The validated dict
@@ -31,9 +35,14 @@ def validate_encrypted_payload(data: Any) -> Dict[str, Any]:
 
     try:
         iterations = int(data["iterations"])
-        if iterations < 1:
-            raise ValueError("Invalid encryption format: iterations must be positive")
     except (TypeError, ValueError) as e:
         raise ValueError("Invalid encryption format: iterations must be integer") from e
+
+    if iterations < 1:
+        raise ValueError("Invalid encryption format: iterations must be positive")
+    if iterations > MAX_ITERATIONS:
+        raise ValueError(
+            f"Invalid encryption format: iterations must not exceed {MAX_ITERATIONS}"
+        )
 
     return data

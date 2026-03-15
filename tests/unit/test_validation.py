@@ -49,3 +49,17 @@ def test_validate_encrypted_payload_invalid_iterations():
     }
     with pytest.raises(ValueError, match="iterations"):
         validate_encrypted_payload(payload)
+
+
+def test_validate_encrypted_payload_iterations_exceeds_max():
+    """Iterations exceeding MAX_ITERATIONS raises ValueError (DoS prevention)."""
+    from config import MAX_ITERATIONS
+
+    payload = {
+        "salt": "a" * 32,
+        "iv": "b" * 24,
+        "encrypted": "c" * 32,
+        "iterations": MAX_ITERATIONS + 1,
+    }
+    with pytest.raises(ValueError, match="must not exceed"):
+        validate_encrypted_payload(payload)

@@ -12,6 +12,7 @@ from flask import (
 
 from app.utils.crypto import DEFAULT_ITERATIONS, encrypt
 from app.utils.errors import safe_decrypt
+from config import MAX_DATA_LENGTH, MAX_PASSWORD_LENGTH
 
 
 main_bp = Blueprint("main", __name__)
@@ -59,7 +60,11 @@ def index():
             password = request.form.get("password", "")
             iterations = _parse_iterations()
 
-            if data and password:
+            if len(password) > MAX_PASSWORD_LENGTH:
+                flash(f"Password must not exceed {MAX_PASSWORD_LENGTH} characters")
+            elif len(data) > MAX_DATA_LENGTH:
+                flash(f"Data must not exceed {MAX_DATA_LENGTH:,} characters")
+            elif data and password:
                 try:
                     encrypted_data = encrypt(data, password, iterations)
                 except ValueError as e:
@@ -68,6 +73,14 @@ def index():
         elif action == "decrypt":
             password = request.form.get("password", "")
 
+            if len(password) > MAX_PASSWORD_LENGTH:
+                flash(f"Password must not exceed {MAX_PASSWORD_LENGTH} characters")
+                return render_template(
+                    "index.html",
+                    encrypted_data=None,
+                    decrypted_data=None,
+                    DEFAULT_ITERATIONS=DEFAULT_ITERATIONS,
+                )
             if not password:
                 flash("Password is required for decryption")
                 return render_template(
@@ -83,7 +96,9 @@ def index():
             )
             text_provided = request.form.get("encrypted_json", "").strip()
 
-            if file_provided:
+            if text_provided and len(text_provided) > MAX_DATA_LENGTH:
+                flash(f"Encrypted data must not exceed {MAX_DATA_LENGTH:,} characters")
+            elif file_provided:
                 file = request.files["encrypted_file"]
                 try:
                     file_content = file.read().decode("utf-8")

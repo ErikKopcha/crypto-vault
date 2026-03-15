@@ -191,11 +191,15 @@ class ResetManager {
     inputMethodManager.switchMethod('file');
 
     // Send a POST request to the server to reset data
+    const csrfToken = document.querySelector(
+      'meta[name="csrf-token"]',
+    )?.content;
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+
     fetch('/reset', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers,
     })
       .then((response) => {
         if (response.ok) {

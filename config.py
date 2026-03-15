@@ -16,6 +16,10 @@ DEFAULT_ITERATIONS = 100_000
 # File upload limit (10 MB)
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
+# Input length limits (DoS prevention)
+MAX_DATA_LENGTH = 1024 * 1024  # 1 MB for plaintext/encrypted JSON
+MAX_PASSWORD_LENGTH = 256
+
 
 class Config:
     """Base configuration."""
@@ -38,6 +42,8 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     SECRET_KEY = "test-secret-key"
+    WTF_CSRF_ENABLED = False
+    RATELIMIT_ENABLED = False
 
 
 class ProductionConfig(Config):
