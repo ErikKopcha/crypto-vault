@@ -1,7 +1,5 @@
-<div align="center">
-  <h1>encrypt_decrypt</h1>
-  <p><strong>Secure local encryption and decryption of sensitive data using AES-256-GCM with web and CLI interfaces.</strong></p>
-</div>
+## Encrypt & decrypt
+### Secure local encryption and decryption of sensitive data using AES-256-GCM with web and CLI interfaces.
 
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.3-black?logo=flask)
