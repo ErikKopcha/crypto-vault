@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 from config import DEFAULT_ENCRYPTED_FOLDER
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -1,4 +1,4 @@
-.PHONY: setup run test clean install
+.PHONY: setup run test lint clean install
 
 # Default virtual environment path
 VENV := venv
@@ -25,6 +25,10 @@ decrypt:
 # Run tests
 test:
 	FLASK_ENV=testing $(PYTHON) -m pytest tests/ -v
+
+# Lint with Ruff
+lint:
+	$(PYTHON) -m ruff check .
 
 # Clean up generated files
 clean:

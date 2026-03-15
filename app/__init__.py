@@ -5,7 +5,7 @@ def create_app(config_class=None):
     """
     Create and configure the Flask application.
 
-    @param config_class - Config class (e.g. DevelopmentConfig). If None, no config loaded.
+    @param config_class - Config class (e.g. DevelopmentConfig). If None, no config.
     @raises ValueError - In production, if SECRET_KEY is not set
     """
     app = Flask(__name__)

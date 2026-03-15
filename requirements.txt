@@ -8,3 +8,4 @@ itsdangerous==2.1.2
 blinker==1.6.2
 pytest==7.4.0
 python-dotenv==1.0.0
+ruff>=0.1.0

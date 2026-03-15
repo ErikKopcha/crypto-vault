@@ -1,189 +1,231 @@
-# Secure Encryption/Decryption Tool
+<div align="center">
+  <h1>encrypt_decrypt</h1>
+  <p><strong>Secure local encryption and decryption of sensitive data using AES-256-GCM with web and CLI interfaces.</strong></p>
+</div>
 
-A secure tool for encrypting and decrypting sensitive data using strong cryptography.
+![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-2.3-black?logo=flask)
+![cryptography](https://img.shields.io/badge/cryptography-41.0-000000?logo=lock)
+![License](https://img.shields.io/badge/license-MIT-green)
+![CI](https://github.com/ErikKopcha/crypto-vault/actions/workflows/ci.yml/badge.svg)
 
-## Features
+## Table of Contents
 
-- Encrypt data using AES-256-GCM with PBKDF2 key derivation
-- Decrypt encrypted data using a password
-- Web interface for easy use
-- Command-line interface for automation
-- All processing happens locally for maximum security
-- No data is stored or logged
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Running the App](#running-the-app)
+- [Available Scripts](#available-scripts)
+- [Key Features](#key-features)
+- [Testing](#testing)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Overview
+
+**What it does** — encrypt_decrypt is a local-first tool for encrypting and decrypting sensitive text and files. It provides a Flask web UI and a CLI for automation. All processing happens locally; no data is stored or transmitted over the network.
+
+**Why it exists** — to offer a simple, auditable way to protect secrets (passwords, API keys, config snippets) using strong, standards-based cryptography. Suitable for personal use, scripts, and small teams.
+
+**Current status** — production-ready. Web and CLI interfaces implemented. Test suite covers crypto, validation, file handling, and routes. CI runs on Python 3.10–3.12.
+
+## Tech Stack
+
+| Layer        | Technology                           |
+| ------------ | ------------------------------------ |
+| Language     | Python 3.10+                         |
+| Web          | Flask 2.3, Jinja2, Werkzeug          |
+| Cryptography | cryptography (AES-256-GCM, PBKDF2)   |
+| CLI          | argparse, Click (via setup.py entry) |
+| Config       | python-dotenv, config classes        |
+| Testing      | pytest 7.4                           |
+| Linting      | Ruff (pyproject.toml)                |
+| Package      | setuptools, pip                      |
+
+## Architecture
+
+The app exposes two interfaces (web and CLI) that share the same crypto and file utilities. Encryption uses AES-256-GCM with PBKDF2-SHA256 key derivation. Output is a JSON envelope with salt, IV, ciphertext, and metadata.
+
+### System Overview
+
+```mermaid
+flowchart LR
+    subgraph Input
+        Web["Web UI\n(Flask)"]
+        CLI["CLI\n(cli.py)"]
+    end
+
+    subgraph Core
+        Routes["routes.py"]
+        Crypto["crypto.py\nAES-256-GCM\nPBKDF2"]
+        File["file.py"]
+    end
+
+    Web --> Routes
+    CLI --> Crypto
+    CLI --> File
+    Routes --> Crypto
+    Routes --> File
+```
+
+### Encryption Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App
+    participant Crypto
+
+    User->>App: plaintext + password
+    App->>Crypto: encrypt(data, password, iterations)
+    Crypto->>Crypto: generate salt, IV
+    Crypto->>Crypto: PBKDF2(password, salt) → key
+    Crypto->>Crypto: AES-GCM.encrypt(iv, plaintext)
+    Crypto-->>App: { salt, iv, encrypted, metadata }
+    App-->>User: JSON or file
+```
 
 ## Project Structure
 
 ```
 encrypt_decrypt/
-│
-├── app/                        # Main application package
-│   ├── __init__.py             # Flask app initialization
-│   ├── routes.py               # Route definitions
-│   ├── utils/                  # Utility modules
-│   │   ├── __init__.py
-│   │   ├── crypto.py           # Cryptographic functions
-│   │   └── file.py             # File handling functions
-│   │
-│   ├── static/                 # Static assets
-│   │   ├── css/
-│   │   │   └── styles.css      # Application styles
-│   │   └── js/
-│   │       └── script.js       # JavaScript functionality
-│   │
-│   └── templates/              # Jinja2 templates
-│       └── index.html          # Main page template
-│
-├── encrypted/                  # Default directory for encrypted files
-├── tests/                      # Test files
-├── scripts/                    # Utility scripts
-├── archive/                    # Archived files
-├── config.py                   # Application configuration
-├── run.py                      # Web application entry point
-├── cli.py                      # Command-line interface
-├── setup.py                    # Package installation configuration
-├── Makefile                    # Build automation
-├── pytest.ini                  # PyTest configuration
-└── requirements.txt            # Project dependencies
+├── app/
+│   ├── __init__.py          # Flask app factory
+│   ├── routes.py            # Web routes (encrypt, decrypt)
+│   ├── utils/
+│   │   ├── crypto.py        # AES-256-GCM, PBKDF2
+│   │   ├── file.py          # Load/save encrypted JSON
+│   │   ├── validation.py   # Input validation
+│   │   └── errors.py       # Error handling
+│   ├── static/              # CSS, JS
+│   └── templates/           # Jinja2 (index.html)
+├── tests/
+│   ├── conftest.py          # Pytest fixtures
+│   ├── test_routes.py       # Route integration tests
+│   └── unit/                # Unit tests (crypto, file, validation)
+├── scripts/                 # Utility scripts (e.g. setup.sh)
+├── config.py                # Config classes (dev, test, prod)
+├── run.py                   # Web entry point
+├── cli.py                   # CLI entry point
+├── setup.py                 # Package install, encrypt-decrypt entry
+├── Makefile                 # setup, run, test, clean, install
+├── pyproject.toml           # Ruff, pytest config
+└── requirements.txt         # Dependencies
 ```
 
-## Installation
+## Getting Started
 
-1. Clone the repository:
+### Prerequisites
 
-   ```
-   git clone https://github.com/yourusername/encrypt_decrypt.git
-   cd encrypt_decrypt
-   ```
+- **Python** >= 3.10
+- **pip** (or `make setup` for venv)
 
-2. Create and activate a virtual environment:
+### Installation
 
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install the dependencies:
-
-   ```
-   pip install -r requirements.txt
-   ```
-
-4. Alternative: Install as a package (provides encrypt-decrypt command):
-   ```
-   pip install -e .
-   ```
-
-## macOS Installation and Usage
-
-1. Ensure you have Python 3.6+ installed:
-
-   ```
-   python3 --version
-   ```
-
-2. If needed, install Python using Homebrew:
-
-   ```
-   brew install python
-   ```
-
-3. Create and activate a virtual environment:
-
-   ```
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-4. Install the dependencies:
-
-   ```
-   pip3 install -r requirements.txt
-   ```
-
-   Make sure you install all required packages:
-
-   ```
-   pip3 install python-dotenv flask cryptography
-   ```
-
-5. Start the application:
-
-   ```
-   python3 run.py
-   ```
-
-6. For the CLI tool:
-   ```
-   python3 cli.py encrypt "Your secret message" "your-password"
-   python3 cli.py decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
-   ```
-
-## Usage
-
-### Web Interface
-
-1. Start the web server:
-
-   ```
-   python run.py
-   ```
-
-2. Open a browser and go to `http://localhost:5000`
-
-3. Use the interface to:
-   - Encrypt: Enter text, provide a password, set iterations (optional), and click "Encrypt"
-   - Decrypt: Upload an encrypted file or paste encrypted JSON, enter the password, and click "Decrypt"
-
-### Command Line
-
-For encryption:
-
+```bash
+git clone https://github.com/ErikKopcha/crypto-vault.git
+cd crypto-vault
+python3 -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
+
+Optional — install as a package (provides `encrypt-decrypt` command):
+
+```bash
+pip install -e .
+```
+
+### Environment Setup
+
+| Variable     | Description                            | Required                        |
+| ------------ | -------------------------------------- | ------------------------------- |
+| `FLASK_ENV`  | `development`, `testing`, `production` | optional (default: development) |
+| `SECRET_KEY` | Flask secret (required in production)  | ✅ (prod)                       |
+| `HOST`       | Bind host (default: `0.0.0.0`)         | optional                        |
+| `PORT`       | Bind port (default: `5000`)            | optional                        |
+
+> **Security note:** In production, set `SECRET_KEY` to a strong random value:
+>
+> ```bash
+> openssl rand -base64 32
+> ```
+
+## Running the App
+
+```bash
+# Web (development)
+python run.py
+# or
+make run
+```
+
+Open [http://localhost:5000](http://localhost:5000) in your browser.
+
+```bash
+# CLI
 python cli.py encrypt "Your secret message" "your-password"
+python cli.py decrypt encrypted/encrypted_2024-05-23_15-30-12.json "your-password"
+
+# With secure password prompt
+python cli.py encrypt "Your secret" --prompt
+python cli.py decrypt encrypted/file.json --prompt
+
+# If installed as package
+encrypt-decrypt encrypt "Your secret" "your-password"
+encrypt-decrypt decrypt encrypted/file.json "your-password"
 ```
 
-For decryption:
+## Available Scripts
 
-```
-python cli.py decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
+| Command                                  | Description                           |
+| ---------------------------------------- | ------------------------------------- |
+| `make setup`                             | Create venv and install dependencies  |
+| `make run`                               | Start Flask dev server                |
+| `make test`                              | Run pytest with verbose output        |
+| `make lint`                              | Run Ruff linter                       |
+| `make clean`                             | Remove `__pycache__` and `.pyc` files |
+| `make install`                           | Install package in development mode   |
+| `make encrypt data="..." password="..."` | CLI encrypt via Makefile              |
+| `make decrypt file="..." password="..."` | CLI decrypt via Makefile              |
+
+## Key Features
+
+- **AES-256-GCM** — authenticated encryption
+- **PBKDF2-SHA256** — key derivation (default 100,000 iterations, configurable 1K–1M)
+- **Web UI** — encrypt/decrypt via browser, paste or upload
+- **CLI** — scriptable, supports `--prompt` for secure password input
+- **Local-only** — no data stored or sent over the network
+- **JSON envelope** — portable format with salt, IV, metadata
+
+## Testing
+
+```bash
+FLASK_ENV=testing pytest tests/ -v
+# or
+make test
 ```
 
-If installed as a package:
+Tests cover:
 
-```
-encrypt-decrypt encrypt "Your secret message" "your-password"
-encrypt-decrypt decrypt encrypted/encrypted_YYYY-MM-DD_HH-MM-SS.json "your-password"
-```
+- Unit: crypto, file I/O, validation, error handling
+- Integration: web routes (encrypt, decrypt)
 
-Additional options:
-
-```
-python cli.py encrypt --help
-python cli.py decrypt --help
-```
-
-### Makefile
-
-The project includes a Makefile with helpful commands:
-
-```
-make help        # Show available commands
-make test        # Run tests
-make lint        # Check code style
-```
+CI runs on Python 3.10, 3.11, 3.12.
 
 ## Security
 
-- Uses AES-256-GCM for authenticated encryption
-- PBKDF2 with SHA-256 for key derivation
-- Default 100,000 iterations for key derivation (adjustable)
-- No data is stored or transmitted over the network
-- All processing happens locally in your browser or on your machine
+- AES-256-GCM for confidentiality and integrity
+- PBKDF2 with configurable iterations (1,000–1,000,000)
+- Random salt and IV per encryption
+- No logging of plaintext or passwords
+- File upload limit: 10 MB
+
+> This tool is for legitimate security use. Use encryption responsibly and in compliance with applicable laws.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Disclaimer
-
-This tool is provided for legitimate security purposes. Always use encryption responsibly and in compliance with applicable laws and regulations.
+[MIT](LICENSE) © 2026 Erik K.

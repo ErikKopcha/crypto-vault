@@ -1,4 +1,3 @@
-import pytest
 
 from app.utils.crypto import encrypt
 from app.utils.errors import safe_decrypt

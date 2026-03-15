@@ -1,7 +1,6 @@
 import os
 from typing import Any, Dict
 
-from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -66,7 +65,7 @@ def decrypt(data: Dict[str, Any], password: str) -> str:
         ciphertext = bytes.fromhex(data["encrypted"])
         iterations = int(data["iterations"])
     except (KeyError, ValueError) as e:
-        raise ValueError(f"Invalid encryption format: {str(e)}")
+        raise ValueError(f"Invalid encryption format: {str(e)}") from e
 
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),

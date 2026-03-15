@@ -24,7 +24,7 @@ def _parse_iterations() -> int:
         value = int(raw)
     except ValueError:
         return DEFAULT_ITERATIONS
-    from app.utils.crypto import MIN_ITERATIONS, MAX_ITERATIONS
+    from app.utils.crypto import MAX_ITERATIONS, MIN_ITERATIONS
 
     return max(MIN_ITERATIONS, min(MAX_ITERATIONS, value))
 
