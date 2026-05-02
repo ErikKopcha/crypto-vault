@@ -3,8 +3,8 @@
 ### Secure local encryption and decryption of sensitive data using AES-256-GCM with web and CLI interfaces.
 
 ![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-2.3-black?logo=flask)
-![cryptography](https://img.shields.io/badge/cryptography-43.0-000000?logo=lock)
+![Flask](https://img.shields.io/badge/Flask-3.1-black?logo=flask)
+![cryptography](https://img.shields.io/badge/cryptography-46.0-000000?logo=lock)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![CI](https://github.com/ErikKopcha/crypto-vault/actions/workflows/ci.yml/badge.svg)
 
@@ -25,19 +25,19 @@
 
 ## Overview
 
-**What it does** — encrypt_decrypt is a local-first tool for encrypting and decrypting sensitive text and files. It provides a Flask web UI and a CLI for automation. All processing happens locally; no data is stored or transmitted over the network.
+**What it does** — encrypt_decrypt is a local-first tool for encrypting and decrypting sensitive text and files. It provides a Flask web UI and a CLI for automation. In web mode, the Flask server performs cryptographic operations; run it on localhost or behind trusted HTTPS only.
 
 **Why it exists** — to offer a simple, auditable way to protect secrets (passwords, API keys, config snippets) using strong, standards-based cryptography. Suitable for personal use, scripts, and small teams.
 
-**Current status** — production-ready. Web and CLI interfaces implemented. Test suite covers crypto, validation, file handling, and routes. CI runs on Python 3.10–3.12.
+**Current status** — local-first and security-hardened. Web and CLI interfaces implemented. Test suite covers crypto, validation, file handling, routes, and security headers. CI runs on Python 3.10–3.12.
 
 ## Tech Stack
 
 | Layer        | Technology                                 |
 | ------------ | ------------------------------------------ |
 | Language     | Python 3.10+                               |
-| Web          | Flask 2.3, Flask-WTF (CSRF), Flask-Limiter |
-| Cryptography | cryptography 43.x (AES-256-GCM, PBKDF2)    |
+| Web          | Flask 3.1, Flask-WTF (CSRF), Flask-Limiter |
+| Cryptography | cryptography 46.x (AES-256-GCM, PBKDF2)    |
 | CLI          | argparse, Click (via setup.py entry)       |
 | Config       | python-dotenv, config classes              |
 | Testing      | pytest 7.4                                 |
@@ -113,7 +113,8 @@ encrypt_decrypt/
 ├── setup.py                 # Package install, encrypt-decrypt entry
 ├── Makefile                 # setup, run, test, clean, install
 ├── pyproject.toml           # Ruff, pytest config
-└── requirements.txt         # Dependencies
+├── requirements.txt         # Direct dependencies
+└── requirements.lock        # Resolved dependency snapshot
 ```
 
 ## Getting Started
@@ -147,12 +148,13 @@ pip install -e .
 
 ### Environment Setup
 
-| Variable     | Description                            | Required                        |
-| ------------ | -------------------------------------- | ------------------------------- |
-| `FLASK_ENV`  | `development`, `testing`, `production` | optional (default: development) |
-| `SECRET_KEY` | Flask secret (required in production)  | ✅ (prod)                       |
-| `HOST`       | Bind host (default: `0.0.0.0`)         | optional                        |
-| `PORT`       | Bind port (default: `5000`)            | optional                        |
+| Variable                | Description                            | Required                        |
+| ----------------------- | -------------------------------------- | ------------------------------- |
+| `FLASK_ENV`             | `development`, `testing`, `production` | optional (default: development) |
+| `SECRET_KEY`            | Flask secret, at least 32 bytes        | ✅ (prod)                       |
+| `RATELIMIT_STORAGE_URI` | Persistent Flask-Limiter storage URI   | ✅ (prod)                       |
+| `HOST`                  | Bind host (default: `0.0.0.0`)         | optional                        |
+| `PORT`                  | Bind port (default: `5000`)            | optional                        |
 
 > **Security note:** In production, set `SECRET_KEY` to a strong random value:
 >
@@ -164,12 +166,15 @@ pip install -e .
 
 ```bash
 # Web (development)
-python run.py
+PORT=5001 venv/bin/python run.py
 # or
-make run
+PORT=5001 make run
 ```
 
-Open [http://localhost:5000](http://localhost:5000) in your browser.
+Open [http://localhost:5001](http://localhost:5001) in your browser.
+
+On macOS, port `5000` is often used by AirPlay Receiver. Use `PORT=5001` unless
+you have explicitly freed port `5000`.
 
 ```bash
 # CLI
@@ -201,10 +206,10 @@ encrypt-decrypt decrypt encrypted/file.json "your-password"
 ## Key Features
 
 - **AES-256-GCM** — authenticated encryption
-- **PBKDF2-SHA256** — key derivation (default 100,000 iterations, configurable 1K–1M)
+- **PBKDF2-SHA256** — key derivation (default 600,000 iterations, configurable 100K–2M)
 - **Web UI** — encrypt/decrypt via browser, paste or upload
 - **CLI** — scriptable, supports `--prompt` for secure password input
-- **Local-only** — no data stored or sent over the network
+- **Local-first** — use the web UI on localhost or trusted HTTPS; CLI never sends data over the network
 - **JSON envelope** — portable format with salt, IV, metadata
 
 ## Testing
@@ -227,22 +232,24 @@ CI runs on Python 3.10, 3.11, 3.12.
 ### Cryptography
 
 - **AES-256-GCM** — authenticated encryption for confidentiality and integrity
-- **PBKDF2-HMAC-SHA256** — key derivation (1,000–1,000,000 iterations, default 100K)
+- **PBKDF2-HMAC-SHA256** — key derivation (100,000–2,000,000 iterations, default 600K)
 - **Random salt and IV** per encryption operation
 - **Iterations bounds** enforced on decrypt to prevent PBKDF2 DoS
 
 ### Web Security
 
 - **CSRF protection** — Flask-WTF on all POST forms
-- **Security headers** — X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy
+- **Security headers** — X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy, HSTS in production
 - **Input limits** — 1 MB for data/encrypted JSON, 256 chars for password
-- **Rate limiting** — 120 requests/minute per IP (Flask-Limiter)
+- **Rate limiting** — 120 requests/minute per IP (Flask-Limiter); persistent storage required in production
 - **File upload limit** — 10 MB
 
 ### Operational
 
 - No logging of plaintext or passwords
-- `SECRET_KEY` required in production
+- Strong `SECRET_KEY` required in production
+- Persistent `RATELIMIT_STORAGE_URI` required in production
+- `requirements.lock` committed for reproducible dependency review
 - `.env.example` for configuration template
 
 > This tool is for legitimate security use. Use encryption responsibly and in compliance with applicable laws.

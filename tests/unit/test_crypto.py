@@ -44,8 +44,10 @@ def test_decrypt_wrong_password():
 
 def test_encrypt_iterations_validation():
     """Test that out-of-range iterations raise ValueError."""
+    from config import MAX_ITERATIONS
+
     with pytest.raises(ValueError, match="between"):
         encrypt("data", "password", iterations=1)
 
     with pytest.raises(ValueError, match="between"):
-        encrypt("data", "password", iterations=2_000_000)
+        encrypt("data", "password", iterations=MAX_ITERATIONS + 1)

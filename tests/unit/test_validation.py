@@ -51,6 +51,20 @@ def test_validate_encrypted_payload_invalid_iterations():
         validate_encrypted_payload(payload)
 
 
+def test_validate_encrypted_payload_iterations_below_minimum():
+    """Iterations below the minimum KDF policy are rejected."""
+    from config import MIN_ITERATIONS
+
+    payload = {
+        "salt": "a" * 32,
+        "iv": "b" * 24,
+        "encrypted": "c" * 32,
+        "iterations": MIN_ITERATIONS - 1,
+    }
+    with pytest.raises(ValueError, match="at least"):
+        validate_encrypted_payload(payload)
+
+
 def test_validate_encrypted_payload_iterations_exceeds_max():
     """Iterations exceeding MAX_ITERATIONS raises ValueError (DoS prevention)."""
     from config import MAX_ITERATIONS

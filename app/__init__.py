@@ -1,6 +1,7 @@
 from flask import Flask
 
 from app.extensions import csrf, limiter
+from config import validate_secret_key
 
 
 def create_app(config_class=None):
@@ -14,10 +15,24 @@ def create_app(config_class=None):
 
     if config_class:
         app.config.from_object(config_class)
-        # Production: require SECRET_KEY (testing has its own)
-        if not app.config.get("TESTING") and not app.config.get("SECRET_KEY"):
+
+        if (
+            not app.config.get("TESTING")
+            and not app.config.get("REQUIRE_STRONG_SECRET_KEY")
+            and not app.config.get("SECRET_KEY")
+        ):
+            app.config["SECRET_KEY"] = "dev-key-change-in-production"
+
+        if app.config.get("REQUIRE_STRONG_SECRET_KEY"):
+            validate_secret_key(app.config.get("SECRET_KEY", ""))
+
+        if (
+            app.config.get("REQUIRE_PERSISTENT_RATE_LIMIT_STORAGE")
+            and not app.config.get("RATELIMIT_STORAGE_URI")
+        ):
             raise ValueError(
-                "SECRET_KEY environment variable must be set in production"
+                "RATELIMIT_STORAGE_URI must be set in production "
+                "(for example, redis://localhost:6379/0)"
             )
 
     csrf.init_app(app)
@@ -40,6 +55,13 @@ def _register_security_headers(app: Flask) -> None:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        )
+        if app.config.get("SESSION_COOKIE_SECURE"):
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self'; "

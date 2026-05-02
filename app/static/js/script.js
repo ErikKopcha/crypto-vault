@@ -1,28 +1,14 @@
-function switchTab(tabName) {
-  app.tabs.switchTab(tabName);
-}
-
-function switchInputMethod(method) {
-  app.inputMethods.switchMethod(method);
-}
-
-function handleFileUpload(input) {
-  app.fileUploader.updateFileLabel(input);
-}
-
-function downloadEncryptedData() {
-  app.resultManager.downloadEncryptedData();
-}
-
-function resetAll() {
-  app.resetManager.resetAllData();
-}
-
 // UI Components
 class TabManager {
   constructor() {
     this.tabs = document.querySelectorAll('.tab');
     this.tabContents = document.querySelectorAll('.tab-content');
+    this.tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        if (tabName) this.switchTab(tabName);
+      });
+    });
   }
 
   switchTab(tabName) {
@@ -31,7 +17,7 @@ class TabManager {
 
     document.getElementById(tabName + '-tab').classList.add('active');
     document
-      .querySelector(`.tab[onclick="switchTab('${tabName}')"]`)
+      .querySelector(`.tab[data-tab="${tabName}"]`)
       .classList.add('active');
   }
 }
@@ -43,12 +29,18 @@ class InputMethodManager {
     this.textUpload = document.getElementById('text-upload');
     this.fileInput = document.getElementById('encrypted-file');
     this.textInput = document.getElementById('encrypted-json');
+    this.methods.forEach((methodElement) => {
+      methodElement.addEventListener('click', () => {
+        const method = methodElement.dataset.method;
+        if (method) this.switchMethod(method);
+      });
+    });
   }
 
   switchMethod(method) {
     this.methods.forEach((el) => el.classList.remove('active'));
     document
-      .querySelector(`.input-method[onclick="switchInputMethod('${method}')"]`)
+      .querySelector(`.input-method[data-method="${method}"]`)
       .classList.add('active');
 
     if (method === 'file') {
@@ -76,6 +68,9 @@ class FileUploader {
     this.dropArea = document.querySelector('.file-upload');
     this.fileInput = document.getElementById('encrypted-file');
     this.initDragAndDrop();
+    this.fileInput?.addEventListener('change', () => {
+      this.updateFileLabel(this.fileInput);
+    });
   }
 
   initDragAndDrop() {
@@ -127,7 +122,11 @@ class FileUploader {
 }
 
 class ResultManager {
-  constructor() {}
+  constructor() {
+    document
+      .getElementById('download-btn')
+      ?.addEventListener('click', () => this.downloadEncryptedData());
+  }
 
   downloadEncryptedData() {
     const resultElement = document.querySelector('.result textarea');
@@ -149,70 +148,6 @@ class ResultManager {
   }
 }
 
-class ResetManager {
-  constructor() {}
-
-  resetAllData() {
-    // Clear all forms
-    document.querySelectorAll('form').forEach((form) => form.reset());
-
-    // Clear file input
-    const fileInput = document.getElementById('encrypted-file');
-    if (fileInput) fileInput.value = '';
-
-    // Reset file upload label
-    const fileLabel = document.querySelector('.file-upload label span');
-    if (fileLabel)
-      fileLabel.textContent = 'Click to select file or drag and drop';
-
-    // Clear text areas
-    document.querySelectorAll('textarea').forEach((textarea) => {
-      if (!textarea.readOnly) {
-        textarea.value = '';
-      }
-    });
-
-    // Remove result sections
-    document.querySelectorAll('.result').forEach((result) => {
-      result.remove();
-    });
-
-    // Remove alerts
-    document.querySelectorAll('.alert').forEach((alert) => {
-      alert.remove();
-    });
-
-    // Switch to encrypt tab
-    const tabManager = new TabManager();
-    tabManager.switchTab('encrypt');
-
-    // Reset input method to file
-    const inputMethodManager = new InputMethodManager();
-    inputMethodManager.switchMethod('file');
-
-    // Send a POST request to the server to reset data
-    const csrfToken = document.querySelector(
-      'meta[name="csrf-token"]',
-    )?.content;
-    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
-
-    fetch('/reset', {
-      method: 'POST',
-      headers,
-    })
-      .then((response) => {
-        if (response.ok) {
-          // Use hard navigation instead of just reloading
-          window.location.href = '/?reset=true&nocache=' + new Date().getTime();
-        }
-      })
-      .catch((error) => {
-        console.error('Error resetting data:', error);
-      });
-  }
-}
-
 // Main App
 class EncryptionApp {
   constructor() {
@@ -227,7 +162,6 @@ class EncryptionApp {
     this.inputMethods = new InputMethodManager();
     this.fileUploader = new FileUploader();
     this.resultManager = new ResultManager();
-    this.resetManager = new ResetManager();
   }
 
   initialize() {

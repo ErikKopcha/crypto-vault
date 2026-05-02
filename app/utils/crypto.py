@@ -5,14 +5,12 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+from config import DEFAULT_ITERATIONS, MAX_ITERATIONS, MIN_ITERATIONS
 
-DEFAULT_ITERATIONS = 100_000
+
 KEY_LENGTH = 32
 SALT_LENGTH = 16
 IV_LENGTH = 12
-
-MIN_ITERATIONS = 1_000
-MAX_ITERATIONS = 1_000_000
 
 
 def _validate_iterations(iterations: int) -> None:

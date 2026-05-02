@@ -56,22 +56,6 @@ h1 {
   background-color: transparent;
 }
 
-.reset-btn-container {
-  margin-left: auto;
-}
-
-.btn-reset {
-  background-color: #ef4444;
-  color: white;
-  font-size: 0.85rem;
-  padding: 8px 12px;
-  border-radius: 4px;
-}
-
-.btn-reset:hover {
-  background-color: #dc2626;
-}
-
 .tab-content {
   display: none;
   animation: fadeIn 0.3s;
@@ -147,6 +131,37 @@ button:hover {
 
 button:active {
   transform: translateY(1px);
+}
+
+.tabs .tab {
+  background-color: transparent;
+  color: #333;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+}
+
+.tabs .tab:hover {
+  background-color: transparent;
+  color: #4f46e5;
+}
+
+.tabs .tab.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+.button-icon {
+  margin-right: 5px;
+  vertical-align: text-bottom;
+}
+
+.encrypted-result {
+  height: 200px;
+}
+
+.visually-hidden-input {
+  display: none;
 }
 
 /* Input options section */

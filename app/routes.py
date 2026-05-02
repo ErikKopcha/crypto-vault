@@ -7,6 +7,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    session,
     url_for,
 )
 
@@ -35,25 +36,13 @@ def index():
     """
     Main route for the encryption/decryption tool.
     """
-    if request.args.get("reset") == "true":
-        response = make_response(
-            render_template(
-                "index.html",
-                encrypted_data=None,
-                decrypted_data=None,
-                DEFAULT_ITERATIONS=DEFAULT_ITERATIONS,
-            )
-        )
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
-
-    encrypted_data = None
-    decrypted_data = None
+    encrypted_data = session.pop("encrypted_data", None)
+    decrypted_data = session.pop("decrypted_data", None)
+    selected_action = session.pop("selected_action", None)
 
     if request.method == "POST":
         action = request.form.get("action")
+        selected_action = action
 
         if action == "encrypt":
             data = request.form.get("data", "")
@@ -66,7 +55,7 @@ def index():
                 flash(f"Data must not exceed {MAX_DATA_LENGTH:,} characters")
             elif data and password:
                 try:
-                    encrypted_data = encrypt(data, password, iterations)
+                    session["encrypted_data"] = encrypt(data, password, iterations)
                 except ValueError as e:
                     flash(str(e))
 
@@ -75,20 +64,12 @@ def index():
 
             if len(password) > MAX_PASSWORD_LENGTH:
                 flash(f"Password must not exceed {MAX_PASSWORD_LENGTH} characters")
-                return render_template(
-                    "index.html",
-                    encrypted_data=None,
-                    decrypted_data=None,
-                    DEFAULT_ITERATIONS=DEFAULT_ITERATIONS,
-                )
+                session["selected_action"] = selected_action
+                return redirect(url_for("main.index"))
             if not password:
                 flash("Password is required for decryption")
-                return render_template(
-                    "index.html",
-                    encrypted_data=None,
-                    decrypted_data=None,
-                    DEFAULT_ITERATIONS=DEFAULT_ITERATIONS,
-                )
+                session["selected_action"] = selected_action
+                return redirect(url_for("main.index"))
 
             file_provided = (
                 "encrypted_file" in request.files
@@ -101,31 +82,46 @@ def index():
             elif file_provided:
                 file = request.files["encrypted_file"]
                 try:
-                    file_content = file.read().decode("utf-8")
+                    file_content = file.stream.read(MAX_DATA_LENGTH + 1).decode("utf-8")
+                    if len(file_content) > MAX_DATA_LENGTH:
+                        flash(
+                            "Encrypted file content must not exceed "
+                            f"{MAX_DATA_LENGTH:,} characters"
+                        )
+                        session["selected_action"] = selected_action
+                        return redirect(url_for("main.index"))
                     data = json.loads(file_content)
-                    decrypted_data, err = safe_decrypt(data, password)
+                    decrypted_data_result, err = safe_decrypt(data, password)
                     if err:
                         flash(f"Decryption failed: {err}")
+                    else:
+                        session["decrypted_data"] = decrypted_data_result
                 except (UnicodeDecodeError, json.JSONDecodeError):
                     flash("Invalid JSON file format")
 
             elif text_provided:
                 try:
                     data = json.loads(text_provided)
-                    decrypted_data, err = safe_decrypt(data, password)
+                    decrypted_data_result, err = safe_decrypt(data, password)
                     if err:
                         flash(f"Decryption failed: {err}")
+                    else:
+                        session["decrypted_data"] = decrypted_data_result
                 except json.JSONDecodeError:
                     flash("Invalid JSON format")
 
             elif request.form.get("submitted", "") == "true":
                 flash("Please provide an encrypted file or JSON data")
 
+        session["selected_action"] = selected_action
+        return redirect(url_for("main.index"))
+
     response = make_response(
         render_template(
             "index.html",
             encrypted_data=encrypted_data,
             decrypted_data=decrypted_data,
+            selected_action=selected_action,
             DEFAULT_ITERATIONS=DEFAULT_ITERATIONS,
         )
     )
@@ -133,9 +129,3 @@ def index():
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
-
-
-@main_bp.route("/reset", methods=["POST"])
-def reset():
-    """Reset all data and return to clean state."""
-    return redirect(url_for("main.index", reset="true"))

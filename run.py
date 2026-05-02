@@ -3,19 +3,25 @@ Run the Flask application.
 """
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-from app import create_app
-from config import config
-
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
-# Get environment configuration from environment variable or default to development
-env = os.environ.get("FLASK_ENV", "default")
-app = create_app(config[env])
+
+def _create_configured_app():
+    """Create the Flask app after loading environment variables."""
+    from app import create_app
+    from config import config
+
+    env = os.environ.get("FLASK_ENV", "default")
+    return create_app(config[env])
+
+
+app = _create_configured_app()
 
 if __name__ == "__main__":
     host = os.environ.get("HOST", "0.0.0.0")

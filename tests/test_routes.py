@@ -12,7 +12,7 @@ def test_index_get(client):
 
 
 def test_encrypt_post(client):
-    """POST encrypt returns encrypted data."""
+    """POST encrypt redirects and shows encrypted data once."""
     response = client.post(
         "/",
         data={
@@ -27,8 +27,28 @@ def test_encrypt_post(client):
     assert b"encrypted" in response.data.lower() or b"Encrypted Result" in response.data
 
 
+def test_encrypt_result_clears_after_refresh(client):
+    """Encrypted result is not retained after a GET refresh."""
+    response = client.post(
+        "/",
+        data={
+            "action": "encrypt",
+            "data": "secret message",
+            "password": "testpass",
+            "iterations": "100000",
+        },
+        follow_redirects=True,
+    )
+    assert b"Encrypted Result" in response.data
+
+    refresh_response = client.get("/")
+
+    assert refresh_response.status_code == 200
+    assert b"Encrypted Result" not in refresh_response.data
+
+
 def test_decrypt_post(client):
-    """POST decrypt with valid data returns decrypted text."""
+    """POST decrypt with valid data redirects and returns decrypted text once."""
     encrypted = encrypt("hello world", "mypassword")
     response = client.post(
         "/",
@@ -42,6 +62,27 @@ def test_decrypt_post(client):
     )
     assert response.status_code == 200
     assert b"hello world" in response.data
+
+
+def test_decrypt_result_clears_after_refresh(client):
+    """Decrypted result is not retained after a GET refresh."""
+    encrypted = encrypt("hello world", "mypassword")
+    response = client.post(
+        "/",
+        data={
+            "action": "decrypt",
+            "encrypted_json": json.dumps(encrypted),
+            "password": "mypassword",
+            "submitted": "true",
+        },
+        follow_redirects=True,
+    )
+    assert b"hello world" in response.data
+
+    refresh_response = client.get("/")
+
+    assert refresh_response.status_code == 200
+    assert b"hello world" not in refresh_response.data
 
 
 def test_decrypt_wrong_password(client):
@@ -59,10 +100,3 @@ def test_decrypt_wrong_password(client):
     )
     assert response.status_code == 200
     assert b"Invalid password" in response.data or b"failed" in response.data.lower()
-
-
-def test_reset_post(client):
-    """POST /reset redirects to index with reset param."""
-    response = client.post("/reset", follow_redirects=False)
-    assert response.status_code == 302
-    assert "reset=true" in response.location

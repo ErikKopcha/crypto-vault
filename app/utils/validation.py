@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from config import MAX_ITERATIONS
+from config import MAX_ITERATIONS, MIN_ITERATIONS
 
 
 REQUIRED_KEYS = frozenset({"salt", "iv", "encrypted", "iterations"})
@@ -38,8 +38,10 @@ def validate_encrypted_payload(data: Any) -> Dict[str, Any]:
     except (TypeError, ValueError) as e:
         raise ValueError("Invalid encryption format: iterations must be integer") from e
 
-    if iterations < 1:
-        raise ValueError("Invalid encryption format: iterations must be positive")
+    if iterations < MIN_ITERATIONS:
+        raise ValueError(
+            f"Invalid encryption format: iterations must be at least {MIN_ITERATIONS}"
+        )
     if iterations > MAX_ITERATIONS:
         raise ValueError(
             f"Invalid encryption format: iterations must not exceed {MAX_ITERATIONS}"

@@ -16,10 +16,13 @@
     />
     <meta
       id="page-data"
-      data-should-switch-decrypt="{{ 'true' if (decrypted_data and not request.args.get('reset')) or (request.form and request.form.get('action') == 'decrypt' and not request.args.get('reset')) else 'false' }}"
+      data-should-switch-decrypt="{{ 'true' if decrypted_data or selected_action == 'decrypt' else 'false' }}"
     />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script
+      src="{{ url_for('static', filename='js/script.js') }}"
+      defer
+    ></script>
   </head>
   <body>
     <div class="container">
@@ -31,31 +34,10 @@
       {% endfor %} {% endif %} {% endwith %}
 
       <div class="tabs">
-        <div class="tab active" onclick="switchTab('encrypt')">Encrypt</div>
-        <div class="tab" onclick="switchTab('decrypt')">Decrypt</div>
-        <div class="reset-btn-container">
-          <button
-            type="button"
-            id="reset-btn"
-            onclick="resetAll()"
-            class="btn-reset"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              style="margin-right: 5px; vertical-align: text-bottom"
-            >
-              <path d="M3 6h18"></path>
-              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"></path>
-              <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
-            </svg>
-            Reset All
-          </button>
-        </div>
+        <button type="button" class="tab active" data-tab="encrypt">
+          Encrypt
+        </button>
+        <button type="button" class="tab" data-tab="decrypt">Decrypt</button>
       </div>
 
       <div id="encrypt-tab" class="tab-content active">
@@ -90,24 +72,20 @@
               type="number"
               id="iterations"
               name="iterations"
-              value="{{ DEFAULT_ITERATIONS|default(100000) }}"
+              value="{{ DEFAULT_ITERATIONS|default(600000) }}"
             />
           </div>
 
           <button type="submit">Encrypt</button>
         </form>
 
-        {% if encrypted_data and not request.args.get('reset') %}
+        {% if encrypted_data %}
         <div class="result">
           <h3>Encrypted Result:</h3>
-          <textarea readonly style="height: 200px">
+          <textarea readonly class="encrypted-result">
 {{ encrypted_data|tojson }}</textarea
           >
-          <button
-            id="download-btn"
-            class="btn-download"
-            onclick="downloadEncryptedData()"
-          >
+          <button id="download-btn" class="btn-download">
             <svg
               width="16"
               height="16"
@@ -115,7 +93,7 @@
               fill="none"
               stroke="currentColor"
               stroke-width="2"
-              style="margin-right: 5px; vertical-align: text-bottom"
+              class="button-icon"
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
@@ -128,11 +106,7 @@
       </div>
 
       <div id="decrypt-tab" class="tab-content">
-        <form
-          method="post"
-          enctype="multipart/form-data"
-          onsubmit="document.getElementById('submitted-flag').value = 'true'"
-        >
+        <form method="post" enctype="multipart/form-data" id="decrypt-form">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <input type="hidden" name="action" value="decrypt" />
           <input
@@ -143,10 +117,7 @@
           />
 
           <div class="input-methods">
-            <div
-              class="input-method active"
-              onclick="switchInputMethod('file')"
-            >
+            <div class="input-method active" data-method="file">
               <svg
                 width="36"
                 height="36"
@@ -165,7 +136,7 @@
               <div class="input-method-desc">Select an encrypted JSON file</div>
             </div>
 
-            <div class="input-method" onclick="switchInputMethod('text')">
+            <div class="input-method" data-method="text">
               <svg
                 width="36"
                 height="36"
@@ -206,8 +177,7 @@
               type="file"
               id="encrypted-file"
               name="encrypted_file"
-              style="display: none"
-              onchange="handleFileUpload(this)"
+              class="visually-hidden-input"
             />
           </div>
 
@@ -233,7 +203,7 @@
           <button type="submit">Decrypt</button>
         </form>
 
-        {% if decrypted_data and not request.args.get('reset') %}
+        {% if decrypted_data %}
         <div class="result">
           <h3>Decrypted Result:</h3>
           <textarea readonly>{{ decrypted_data }}</textarea>
@@ -254,9 +224,9 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
         <span>
-          <strong>Privacy Note:</strong> All encryption and decryption is
-          performed locally. No data is stored or logged. For maximum security,
-          consider running this tool on your local machine.
+          <strong>Privacy Note:</strong> The Flask server performs encryption
+          and decryption. Run it on localhost or behind trusted HTTPS; do not
+          send sensitive data to an untrusted remote host.
         </span>
       </div>
     </div>
